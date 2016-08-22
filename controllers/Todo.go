@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 
 	"../models"
@@ -19,7 +20,10 @@ func (t *Todo) ShowAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"todos": todos})
+	c.JSON(200, gin.H{
+		"error": nil,
+		"todos": todos,
+	})
 }
 
 func (t *Todo) Show(c *gin.Context) {
@@ -27,34 +31,40 @@ func (t *Todo) Show(c *gin.Context) {
 
 	tid, e := strconv.Atoi(id)
 	if e != nil {
-		c.String(400, "%s", e)
+		c.JSON(400, gin.H{
+			"error": e,
+		})
 		return
 	}
 
 	todo, e := t.Repository.FindTodo(tid)
 	if e != nil {
-		c.String(500, "%s", e)
+		c.JSON(500, gin.H{
+			"error": e,
+		})
 		return
 	}
 
 	if todo == nil {
-		c.String(404, "Todo (id: %s) is not found", id)
-		return
-	}
-	str, e := todo.ToJson()
-	if e != nil {
-		c.String(500, "%s", e)
+		c.JSON(404, gin.H{
+			"error": fmt.Sprintf("Todo (id: %s) is not found", id),
+		})
 		return
 	}
 
-	c.String(200, "%s", string(str))
+	c.JSON(200, gin.H{
+		"todo":  todo,
+		"error": nil,
+	})
 }
 
 func (t *Todo) Create(c *gin.Context) {
 	title := c.PostForm("title")
 	contents := c.PostForm("contents")
 	if title == "" || contents == "" {
-		c.String(400, "title (%s) and contents (%s) cannot be empty", title, contents)
+		c.JSON(400, gin.H{
+			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, contents),
+		})
 		return
 	}
 	e := t.Repository.PutTodo(&models.Todo{
@@ -62,29 +72,33 @@ func (t *Todo) Create(c *gin.Context) {
 		Contents: contents,
 	})
 	if e != nil {
-		c.String(500, "%s", e)
+		c.JSON(500, gin.H{"error": e})
 		return
 	}
 
-	c.String(200, "%s", string("ok"))
+	c.JSON(200, gin.H{"error": nil})
 }
 
 func (t *Todo) Update(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.String(404, "Todo (id: %s) is not found", id)
+		c.JSON(404, gin.H{
+			"error": fmt.Sprintf("Todo (id: %s) is not found", id),
+		})
 		return
 	}
 	tid, e := strconv.Atoi(id)
 	if e != nil {
-		c.String(400, "%s", e)
+		c.JSON(400, gin.H{"error": e})
 		return
 	}
 
 	title := c.PostForm("title")
 	contents := c.PostForm("contents")
 	if title == "" || contents == "" {
-		c.String(400, "title (%s) and contents (%s) cannot be empty", title, contents)
+		c.JSON(400, gin.H{
+			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, contents),
+		})
 		return
 	}
 
@@ -94,28 +108,28 @@ func (t *Todo) Update(c *gin.Context) {
 		Contents: contents,
 	})
 	if e != nil {
-		c.String(500, "%s", e)
+		c.JSON(500, gin.H{"error": e})
 		return
 	}
-	c.String(200, "%s", "ok")
+	c.JSON(200, gin.H{"error": nil})
 }
 
 func (t *Todo) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.String(404, "Todo (id: %s) is not found", id)
+		c.JSON(404, gin.H{"error": fmt.Sprintf("Todo (id: %s) is not found", id)})
 		return
 	}
 	tid, e := strconv.Atoi(id)
 	if e != nil {
-		c.String(400, "%s", e)
+		c.JSON(400, gin.H{"error": e})
 		return
 	}
 
 	e = t.Repository.RemoveTodo(tid)
 	if e != nil {
-		c.String(500, "%s", e)
+		c.JSON(500, gin.H{"error": e})
 		return
 	}
-	c.String(200, "%s", "ok")
+	c.JSON(200, gin.H{"error": nil})
 }
