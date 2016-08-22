@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"./controllers"
 	"./models"
 	"./repositories"
@@ -11,6 +13,11 @@ func main() {
 	r := &repositories.TodoRepositoryOnMemory{Data: map[int]*models.Todo{}}
 	t := &controllers.Todo{Repository: r}
 	router := gin.Default()
+	router.LoadHTMLGlob("views/*.tmpl")
+	router.Static("/assets", "./assets")
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{})
+	})
 	api := router.Group("/api")
 	{
 		api.GET("/todo", t.ShowAll)
