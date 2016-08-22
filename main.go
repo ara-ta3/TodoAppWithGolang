@@ -10,7 +10,13 @@ import (
 )
 
 func main() {
-	r := &repositories.TodoRepositoryOnMemory{Data: map[int]*models.Todo{}}
+	r := &repositories.TodoRepositoryOnMemory{Data: map[int]*models.Todo{
+		1: &models.Todo{
+			ID:          1,
+			Title:       "ReactでTodoAppを作ってみる",
+			Description: "がんばる",
+		},
+	}}
 	t := &controllers.Todo{Repository: r}
 	router := gin.Default()
 	router.LoadHTMLGlob("views/*.tmpl")

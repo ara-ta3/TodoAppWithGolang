@@ -60,16 +60,16 @@ func (t *Todo) Show(c *gin.Context) {
 
 func (t *Todo) Create(c *gin.Context) {
 	title := c.PostForm("title")
-	contents := c.PostForm("contents")
-	if title == "" || contents == "" {
+	description := c.PostForm("description")
+	if title == "" || description == "" {
 		c.JSON(400, gin.H{
-			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, contents),
+			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, description),
 		})
 		return
 	}
 	e := t.Repository.PutTodo(&models.Todo{
-		Title:    title,
-		Contents: contents,
+		Title:       title,
+		Description: description,
 	})
 	if e != nil {
 		c.JSON(500, gin.H{"error": e})
@@ -94,18 +94,18 @@ func (t *Todo) Update(c *gin.Context) {
 	}
 
 	title := c.PostForm("title")
-	contents := c.PostForm("contents")
-	if title == "" || contents == "" {
+	description := c.PostForm("description")
+	if title == "" || description == "" {
 		c.JSON(400, gin.H{
-			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, contents),
+			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, description),
 		})
 		return
 	}
 
 	e = t.Repository.PutTodo(&models.Todo{
-		ID:       tid,
-		Title:    title,
-		Contents: contents,
+		ID:          tid,
+		Title:       title,
+		Description: description,
 	})
 	if e != nil {
 		c.JSON(500, gin.H{"error": e})
