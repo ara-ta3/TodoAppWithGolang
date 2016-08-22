@@ -2,10 +2,11 @@
     "use strict";
 
     class TodoModel {
-        constructor(id, title, description) {
+        constructor(id, title, description, done) {
             this.id = id;
             this.title = title;
             this.description = description;
+            this.done = done;
         }
     }
 
@@ -13,7 +14,7 @@
         render() {
             const todos = this.props.todos.map((todo, idx) => {
                 return (
-                        <Todo key={idx + "-" + Date.now()} text={todo.title} description={todo.description}/>
+                        <Todo key={idx + "-" + Date.now()} origin={todo} onTodoDone={this.props.onTodoDone}/>
                        )
             });
             return (
@@ -25,26 +26,37 @@
         }
     }
     class Todo extends React.Component {
-        handleTodo() {
+        componentDidMount() {
             const checked = ReactDOM.findDOMNode(this.refs.checkbox).checked;
-            const textForm = ReactDOM.findDOMNode(this.refs.text);
+            this.applyStyle(checked);
+        }
 
-            ReactDOM.findDOMNode(this.refs.checkbox).checked = !checked;
+        applyStyle(checked) {
+            const textForm = ReactDOM.findDOMNode(this.refs.text);
             if(checked) {
-                textForm.className = "text-primary";
-                textForm.style.textDecoration = "";
-            } else {
                 textForm.className = "text-muted";
                 textForm.style.textDecoration = "line-through";
+            } else {
+                textForm.className = "text-primary";
+                textForm.style.textDecoration = "";
             }
         }
+
+        handleTodo() {
+            const checked = ReactDOM.findDOMNode(this.refs.checkbox).checked;
+            ReactDOM.findDOMNode(this.refs.checkbox).checked = !checked;
+            this.props.onTodoDone(this.props.origin.id, !checked, () => {
+                this.applyStyle(!checked);
+            });
+        }
+
         render() {
             return (
                     <div className="todo">
                     <label>
-                    <input ref="checkbox" type="checkbox" className="todoCheckbox" />
+                    <input ref="checkbox" type="checkbox" className="todoCheckbox" checked={this.props.origin.done} />
                     </label>
-                    <span ref="text" className="text-primary" onClick={this.handleTodo.bind(this)}>  {this.props.text}  ( {this.props.description} ) </span>
+                    <span ref="text" onClick={this.handleTodo.bind(this)}>  {this.props.origin.title}  ( {this.props.origin.description} ) </span>
                     </div>
                    );
         }
@@ -68,7 +80,7 @@
                     <input type="text" className="form-control" placeholder="Todo Title" ref="text" required/>
                     </div>
                     <div className="form-group">
-                    <input type="text" className="form-control" placeholder="Todo Description" ref="description"/>
+                    <input type="text" className="form-control" placeholder="Todo Description" ref="description" required/>
                     </div>
 
                     <input type="submit" className="btn btn-primary" value="追加" />
@@ -99,7 +111,7 @@
                 }
                 const todos = Object.keys(res.todos).map((key) => {
                     const t = res.todos[key];
-                    return new TodoModel(t.id, t.title, t.description);
+                    return new TodoModel(t.id, t.title, t.description, t.done);
                 });
                 this.setState({
                     todos: todos
@@ -110,6 +122,24 @@
             });
             req.open('GET', '/api/todo');
             req.send();
+        }
+
+        onTodoDone(id, done, callback) {
+            const req = new XMLHttpRequest();
+            req.addEventListener('load', (event) => {
+                const res = JSON.parse(event.target.response);
+                if (res.error != null) {
+                    console.error(res.error);
+                    return;
+                }
+                callback();
+            });
+            req.addEventListener('error', (event) => {
+                console.error(event.error);
+            });
+            req.open('PUT', `/api/todo/${id}/`);
+            req.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+            req.send(`done=${encodeURIComponent(done)}`);
         }
 
         onTodoSubmit(title, description, callback) {
@@ -142,7 +172,7 @@
                         </div>
                         <hr />
                         <div className="row">
-                            <TodoList todos={this.state.todos}/>
+                            <TodoList todos={this.state.todos} onTodoDone={this.onTodoDone.bind(this)}/>
                             <hr />
                             <TodoForm onTodoSubmit={this.onTodoSubmit.bind(this)}/>
                         </div>

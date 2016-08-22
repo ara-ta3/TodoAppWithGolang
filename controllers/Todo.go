@@ -93,20 +93,32 @@ func (t *Todo) Update(c *gin.Context) {
 		return
 	}
 
-	title := c.PostForm("title")
-	description := c.PostForm("description")
-	if title == "" || description == "" {
-		c.JSON(400, gin.H{
-			"error": fmt.Sprintf("title (%s) and description (%s) cannot be empty", title, description),
+	todo, e := t.Repository.FindTodo(tid)
+	if e != nil {
+		c.JSON(500, gin.H{
+			"error": e,
 		})
 		return
 	}
 
-	e = t.Repository.PutTodo(&models.Todo{
-		ID:          tid,
-		Title:       title,
-		Description: description,
-	})
+	done := c.PostForm("done")
+	if done == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Sprintf("done (%s) cannot be empty", done),
+		})
+		return
+	}
+
+	d, e := strconv.ParseBool(done)
+	if e != nil {
+		c.JSON(400, gin.H{
+			"error": e,
+		})
+		return
+	}
+
+	todo.Done = d
+	e = t.Repository.PutTodo(todo)
 	if e != nil {
 		c.JSON(500, gin.H{"error": e})
 		return
