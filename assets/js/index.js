@@ -11,6 +11,12 @@
     }
 
     class TodoList extends React.Component {
+
+        deleteDoneTodos() {
+            const targets = this.props.todos.filter((t) => t.done).map((t) => t.id);
+            this.props.onDoneTodoDelete(targets);
+        }
+
         render() {
             const todos = this.props.todos.map((todo, idx) => {
                 return (
@@ -21,6 +27,8 @@
                     <div className="todolist">
                     <h2>残タスク</h2>
                     {todos}
+                    <hr />
+                    <button className="btn btn-danger" onClick={this.deleteDoneTodos.bind(this)}>チェックしたものを削除</button>
                     </div>
                    );
         }
@@ -133,6 +141,7 @@
                     return;
                 }
                 callback();
+                this.loadTodos();
             });
             req.addEventListener('error', (event) => {
                 console.error(event.error);
@@ -164,6 +173,25 @@
             ].join("&"));
         }
 
+        onDoneTodoDelete(ids) {
+            const form = new FormData();
+            form.append("ids", ids);
+            const req = new XMLHttpRequest();
+            req.addEventListener('load', (event) => {
+                const res = JSON.parse(event.target.response);
+                if (res.error != null) {
+                    console.error(res.error);
+                    return;
+                }
+                this.loadTodos();
+            });
+            req.addEventListener('error', (event) => {
+                console.error(event.error);
+            });
+            req.open('DELETE', '/api/todo');
+            req.send(form);
+        }
+
         render() {
             return (
                     <div>
@@ -172,7 +200,7 @@
                         </div>
                         <hr />
                         <div className="row">
-                            <TodoList todos={this.state.todos} onTodoDone={this.onTodoDone.bind(this)}/>
+                            <TodoList todos={this.state.todos} onTodoDone={this.onTodoDone.bind(this)} onDoneTodoDelete={this.onDoneTodoDelete.bind(this)}/>
                             <hr />
                             <TodoForm onTodoSubmit={this.onTodoSubmit.bind(this)}/>
                         </div>

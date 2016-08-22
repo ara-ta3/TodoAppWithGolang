@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"../models"
 	"../repositories"
@@ -127,21 +128,24 @@ func (t *Todo) Update(c *gin.Context) {
 }
 
 func (t *Todo) Delete(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(404, gin.H{"error": fmt.Sprintf("Todo (id: %s) is not found", id)})
+	raw := c.PostForm("ids")
+	if raw == "" {
+		c.JSON(404, gin.H{"error": fmt.Sprintf("Todo (ids: %s) is not found", raw)})
 		return
 	}
-	tid, e := strconv.Atoi(id)
-	if e != nil {
-		c.JSON(400, gin.H{"error": e})
-		return
-	}
+	ids := strings.Split(raw, ",")
+	for _, id := range ids {
+		tid, e := strconv.Atoi(id)
+		if e != nil {
+			c.JSON(400, gin.H{"error": e})
+			return
+		}
 
-	e = t.Repository.RemoveTodo(tid)
-	if e != nil {
-		c.JSON(500, gin.H{"error": e})
-		return
+		e = t.Repository.RemoveTodo(tid)
+		if e != nil {
+			c.JSON(500, gin.H{"error": e})
+			return
+		}
 	}
 	c.JSON(200, gin.H{"error": nil})
 }

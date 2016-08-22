@@ -30,7 +30,7 @@ func main() {
 		api.GET("/todo/:id", t.Show)
 		api.POST("/todo", t.Create)
 		api.PUT("/todo/:id", t.Update)
-		api.DELETE("/todo/:id", t.Delete)
+		api.DELETE("/todo", t.Delete)
 	}
 	router.Run()
 }
