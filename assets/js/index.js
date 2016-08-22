@@ -55,15 +55,22 @@
             e.preventDefault();
 
             const text = ReactDOM.findDOMNode(this.refs.text).value.trim();
-            text && this.props.onTodoSubmit(text);
-            ReactDOM.findDOMNode(this.refs.text).value = "";
+            const description = ReactDOM.findDOMNode(this.refs.description).value.trim();
+            text && this.props.onTodoSubmit(text, description, () => {
+                ReactDOM.findDOMNode(this.refs.text).value = "";
+                ReactDOM.findDOMNode(this.refs.description).value = "";
+            });
         }
         render() {
             return (
                     <form className="todoForm" onSubmit={this.handleSubmit.bind(this)}>
                     <div className="form-group">
-                    <input type="text" className="form-control" placeholder="Todo content" ref="text"/>
+                    <input type="text" className="form-control" placeholder="Todo Title" ref="text" required/>
                     </div>
+                    <div className="form-group">
+                    <input type="text" className="form-control" placeholder="Todo Description" ref="description"/>
+                    </div>
+
                     <input type="submit" className="btn btn-primary" value="追加" />
                     </form>
                    );
@@ -79,9 +86,15 @@
         }
 
         componentDidMount() {
-            this.loadTodos((res) => {
+            this.loadTodos();
+        }
+
+        loadTodos() {
+            const req = new XMLHttpRequest();
+            req.addEventListener('load', (event) => {
+                const res = JSON.parse(event.target.response);
                 if (res.error != null) {
-                    console.error(res);
+                    console.error(res.error);
                     return;
                 }
                 const todos = Object.keys(res.todos).map((key) => {
@@ -92,13 +105,6 @@
                     todos: todos
                 });
             });
-        }
-
-        loadTodos(callback) {
-            const req = new XMLHttpRequest();
-            req.addEventListener('load', function(event) {
-                callback(JSON.parse(event.target.response));
-            });
             req.addEventListener('error', function(event) {
                 console.error(event);
             });
@@ -106,8 +112,26 @@
             req.send();
         }
 
-        onTodoSubmit(todo) {
-            this.setState({todos: this.state.todos.concat([todo])});
+        onTodoSubmit(title, description, callback) {
+            const req = new XMLHttpRequest();
+            req.addEventListener('load', (event) => {
+                const res = JSON.parse(event.target.response);
+                if (res.error != null) {
+                    console.error(res.error);
+                    return;
+                }
+                callback();
+                this.loadTodos();
+            });
+            req.addEventListener('error', (event) => {
+                console.error(event.error);
+            });
+            req.open('POST', '/api/todo');
+            req.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+            req.send([
+                `title=${encodeURIComponent(title)}`,
+                `description=${encodeURIComponent(description)}`
+            ].join("&"));
         }
 
         render() {

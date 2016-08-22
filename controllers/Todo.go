@@ -63,7 +63,7 @@ func (t *Todo) Create(c *gin.Context) {
 	description := c.PostForm("description")
 	if title == "" || description == "" {
 		c.JSON(400, gin.H{
-			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, description),
+			"error": fmt.Sprintf("title (%s) and description (%s) cannot be empty", title, description),
 		})
 		return
 	}
@@ -97,7 +97,7 @@ func (t *Todo) Update(c *gin.Context) {
 	description := c.PostForm("description")
 	if title == "" || description == "" {
 		c.JSON(400, gin.H{
-			"error": fmt.Sprintf("title (%s) and contents (%s) cannot be empty", title, description),
+			"error": fmt.Sprintf("title (%s) and description (%s) cannot be empty", title, description),
 		})
 		return
 	}
