@@ -1,6 +1,6 @@
 package repositories
 
-import "../models"
+import "github.com/ara-ta3/TodoAppWithGolang/models"
 
 type TodoRepository interface {
 	FindAll() (map[int]*models.Todo, error)
