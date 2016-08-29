@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 
-	"./controllers"
-	"./models"
-	"./repositories"
+	"github,com/ara-ta3/TodoAppWithGolang/controllers"
+	"github,com/ara-ta3/TodoAppWithGolang/models"
+	"github,com/ara-ta3/TodoAppWithGolang/repositories"
 	"github.com/gin-gonic/gin"
 )
 
